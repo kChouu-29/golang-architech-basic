@@ -1,0 +1,83 @@
+CREATE DATABASE IF NOT EXISTS go_api_practice;
+USE go_api_practice;
+
+-- Bảng users
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    age INT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Bảng posts
+CREATE TABLE posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    title VARCHAR(200) NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Bảng comments
+CREATE TABLE comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT,
+    user_id INT,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+INSERT INTO users (username, email, password, age) VALUES
+('khanhpham', 'khanh@example.com', 'hash_pass_1', 21),
+('minhtran', 'minh@example.com', 'hash_pass_2', 25),
+('thaoho', 'thao@example.com', 'hash_pass_3', 20),
+('nguyentuan', 'tuan@example.com', 'hash_pass_4', 23),
+('lethu', 'thu@example.com', 'hash_pass_5', 22),
+('hoanglong', 'long@example.com', 'hash_pass_6', 30),
+('trangnguyen', 'trang@example.com', 'hash_pass_7', 19),
+('baonguyen', 'bao@example.com', 'hash_pass_8', 27),
+('anhpham', 'anh@example.com', 'hash_pass_9', 24),
+('thanhle', 'thanh@example.com', 'hash_pass_10', 28);
+
+-- Dữ liệu mẫu cho bảng posts
+INSERT INTO posts (user_id, title, content) VALUES
+(1, 'Giới thiệu bản thân bằng Golang', 'Hôm nay mình thử viết API đầu tiên bằng Golang.'),
+(2, 'RESTful là gì?', 'RESTful API là kiểu thiết kế API phổ biến và dễ mở rộng.'),
+(3, 'Sử dụng GORM trong Golang', 'GORM là ORM mạnh mẽ giúp thao tác với database dễ hơn.'),
+(4, 'Middleware trong Golang', 'Middleware giúp xử lý logic trước khi request tới handler chính.'),
+(5, 'Debug Golang trong Docker', 'Mình học được cách debug Golang trong container bằng Delve.'),
+(6, 'Log trong Golang', 'Tìm hiểu các mức độ log: info, warning, error, fatal.'),
+(7, 'Filebeat và ELK Stack', 'Filebeat thu thập log và gửi đến Elasticsearch qua Logstash.'),
+(8, 'Cách validate dữ liệu', 'Mình dùng go-playground/validator để kiểm tra dữ liệu request.'),
+(9, 'MySQL connection pool', 'Hiểu cơ chế pool giúp tăng tốc độ kết nối DB.'),
+(10, 'Học Docker cơ bản', 'Docker giúp đóng gói ứng dụng dễ triển khai.');
+
+-- Dữ liệu mẫu cho bảng comments
+INSERT INTO comments (post_id, user_id, content) VALUES
+(1, 2, 'Hay quá bạn ơi, mình cũng đang học Golang nè!'),
+(1, 3, 'Nhớ dùng struct tag validate nha.'),
+(2, 1, 'Giải thích dễ hiểu đó bạn.'),
+(2, 5, 'Cảm ơn vì chia sẻ!'),
+(3, 4, 'Mình dùng GORM thấy tiện lắm luôn.'),
+(3, 6, 'Có thể thêm example không bạn?'),
+(4, 7, 'Middleware trong Golang khá giống ExpressJS.'),
+(4, 2, 'Bài viết hay, cảm ơn bạn.'),
+(5, 1, 'Debug trong Docker đúng là phức tạp thiệt.'),
+(5, 8, 'Có thể chia sẻ docker-compose.yaml không?'),
+(6, 9, 'Log rất quan trọng khi deploy app.'),
+(6, 10, 'Bạn có dùng zap hay logrus không?'),
+(7, 3, 'ELK mạnh thiệt, nhưng hơi nặng.'),
+(7, 4, 'Filebeat gửi log nhanh cực.'),
+(8, 5, 'Validator giúp code sạch hơn nhiều.'),
+(8, 6, 'Có thể dùng custom rule nữa đó.'),
+(9, 7, 'MySQL pool rất hữu ích cho API.'),
+(9, 8, 'Nhớ đóng connection đúng cách nha.'),
+(10, 9, 'Docker là bước khởi đầu cho DevOps.'),
+(10, 10, 'Rất dễ hiểu, cảm ơn bạn.');
+
