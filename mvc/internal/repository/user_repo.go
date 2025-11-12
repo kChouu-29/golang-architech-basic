@@ -30,7 +30,7 @@ func NewUserRepo(db *sql.DB) UserRepository {
 
 // Create
 func (r *UserRepo) CreateUser(user *model.Users) (*model.Users, error) {
-	_, err := r.DB.Exec("insert into users (usernam,email,password,age) values (?,?,?,?)", user.Username, user.Email, user.PasswordHard, user.Age)
+	_, err := r.DB.Exec("insert into users (username,email,password,age) values (?,?,?,?)", user.Username, user.Email, user.PasswordHard, user.Age)
 	if err != nil {
 		return nil, err
 	}

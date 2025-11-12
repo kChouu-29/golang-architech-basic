@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"mvc/internal/controller"
 	"mvc/internal/database"
@@ -14,13 +13,12 @@ import (
 
 func main() {
 	// 1. Gọi "nhà máy" để lấy router đã được lắp ráp hoàn chỉnh
-	dbConn := database.New()
-	sqlDB, ok := dbConn.(*sql.DB)
-	if !ok {
-		log.Fatal("Failed to assert dbConn to *sql.DB")
+	dbconn, err := database.ConnectDb()
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	// 2. Khởi tạo Repository (Inject DB)
-	userRepo := repository.NewUserRepo(sqlDB)
+	userRepo := repository.NewUserRepo(dbconn)
 
 	// 3. Khởi tạo Service (Inject Repo)
 	userService := service.NewUserService(userRepo)
@@ -44,7 +42,7 @@ func main() {
 	}
 
 	// 3. Chạy server
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
