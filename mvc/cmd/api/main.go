@@ -1,58 +1,51 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"database/sql"
 	"log"
+	"mvc/internal/controller"
+	"mvc/internal/database"
+	"mvc/internal/handler"
+	"mvc/internal/repository"
+	"mvc/internal/server" // Import package 'server' bạn vừa tạo
+	"mvc/internal/service"
 	"net/http"
-	"os/signal"
-	"syscall"
-	"time"
-
-	"mvc/internal/server"
 )
 
-func gracefulShutdown(apiServer *http.Server, done chan bool) {
-	// Create context that listens for the interrupt signal from the OS.
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	// Listen for the interrupt signal.
-	<-ctx.Done()
-
-	log.Println("shutting down gracefully, press Ctrl+C again to force")
-	stop() // Allow Ctrl+C to force shutdown
-
-	// The context is used to inform the server it has 5 seconds to finish
-	// the request it is currently handling
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := apiServer.Shutdown(ctx); err != nil {
-		log.Printf("Server forced to shutdown with error: %v", err)
-	}
-
-	log.Println("Server exiting")
-
-	// Notify the main goroutine that the shutdown is complete
-	done <- true
-}
-
 func main() {
+	// 1. Gọi "nhà máy" để lấy router đã được lắp ráp hoàn chỉnh
+	dbConn := database.New()
+	sqlDB, ok := dbConn.(*sql.DB)
+	if !ok {
+		log.Fatal("Failed to assert dbConn to *sql.DB")
+	}
+	// 2. Khởi tạo Repository (Inject DB)
+	userRepo := repository.NewUserRepo(sqlDB)
 
-	server := server.NewServer()
+	// 3. Khởi tạo Service (Inject Repo)
+	userService := service.NewUserService(userRepo)
 
-	// Create a done channel to signal when the shutdown is complete
-	done := make(chan bool, 1)
+	// 4. Khởi tạo Controller (Inject Service)
+	// (Dùng *struct* vì bạn bỏ mock)
+	userController := controller.NewUserController(userService)
 
-	// Run graceful shutdown in a separate goroutine
-	go gracefulShutdown(server, done)
+	// 5. Khởi tạo Handler (Inject Controller)
+	userHandler := handler.NewUserHandler(userController)
 
-	err := server.ListenAndServe()
-	if err != nil && err != http.ErrServerClosed {
-		panic(fmt.Sprintf("http server error: %s", err))
+	log.Println("Setting up application routes...")
+	mux := server.NewRouter(userHandler)
+
+	// 2. Cấu hình server
+	log.Println("Starting server on http://localhost:8080")
+
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: mux, // Gán router của bạn cho server
 	}
 
-	// Wait for the graceful shutdown to complete
-	<-done
-	log.Println("Graceful shutdown complete.")
+	// 3. Chạy server
+	err := server.ListenAndServe()
+	if err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
 }
