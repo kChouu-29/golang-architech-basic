@@ -8,6 +8,6 @@ type Users struct {
 	Email        string
 	PasswordHard string
 	Age          int
-	CreatedAt   time.Time
-	UpdatedAt time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
